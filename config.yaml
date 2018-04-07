@@ -2,8 +2,8 @@
 configs:
     use: 'small'
     small:
-        memory: 2048
-        cores: 2
+        memory: 1024
+        cores: 1
     medium:
         memory: 4096
         cores: 2
@@ -23,3 +23,10 @@ configs:
     default:
         # Limit DNS resolution to IPV4
         ipv4only: true
+        # Populates git config
+        user_name: BaseBoxOrg
+        user_email: baseboxorg@outlook.com
+        # Set the number of monitors, defaults to let the provider determine it
+        # monitors: 1
+        # Optional Timezone, pulled from host machine if not specified
+        timezone: Asia/Singapore

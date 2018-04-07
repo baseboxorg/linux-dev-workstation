@@ -97,7 +97,38 @@ Vagrant.configure("2") do |config|
         echo "LANG=en_US.UTF-8" > /etc/sysconfig/i18n
     )
 
+    [ -f /var/lib/vagrant-yum-update ] || (
+      touch /var/lib/vagrant-yum-update
+      yum update -y
+    )
+
+    [ -f /opt/puppetlabs/puppet/bin/puppet ] || (
+      rpm -Uvh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
+      yum install -y puppet-agent
+    )
   SHELL
+
+  config.vm.provision "puppet", type: "puppet" do |puppet|
+    puppet.environment_path = "environments"
+    puppet.environment = "dev"
+    puppet.environment_variables = {
+      'NODE_BUILD_CACHE_PATH' => '/tmp/vagrant-cache/nodenv',
+      'RUBY_BUILD_CACHE_PATH' => '/tmp/vagrant-cache/rbenv',
+    }
+    puppet.facter = {
+      "proxy_url" => vagrant_config['proxy_url'] || ENV["HTTPS_PROXY"] || ENV["HTTP_PROXY"],
+      "http_proxy" => vagrant_config['proxy_url'] || ENV["HTTP_PROXY"],
+      "https_proxy" => vagrant_config['proxy_url'] || ENV["HTTPS_PROXY"],
+      "proxy_excludes" => vagrant_config['proxy_excludes'] || ENV["NO_PROXY"],
+      "ipv4only" => vagrant_config['ipv4only'],
+      "search_domain" => vagrant_config['search_domain'],
+      "host_username" => vagrant_config['username'] || ENV['USER'] || ENV['USERNAME'] || 'vagrant',
+      "user_name" => vagrant_config['user_name'] || `git config --get user.name 2>/dev/null`.chomp,
+      "user_email" => vagrant_config['user_email'] || `git config --get user.email 2>/dev/null`.chomp,
+      "timezone" => vagrant_config['timezone'] || sprintf("Etc/GMT%+d", Time.now.utc_offset / -3600),
+    }
 #    puppet.options = "--debug"
 #    puppet.options = "--noop"
   end
+
+end
